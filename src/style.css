@@ -75,6 +75,10 @@
   top: -20px;
 }
 
+.selectedAmount {
+  background-color: #20FF20 !important;
+}
+
 .rotate {
   transform: rotate(-90deg);
   text-align: center;

@@ -77,8 +77,6 @@
                         </template>
 
                     </div>
-
-
                 </template>
 
                 <div class="column-item" @click="addBet('FirstColumn', rouletteNumbers.firstColumn)">
@@ -129,15 +127,14 @@
                     <div>19-36<span class="betamount relative"  x-show="bets['SecondHalf']" x-text="bets['SecondHalf'] ? bets['SecondHalf'].amount : 0"></span></div>
                 </div>
             </div>
-            <div class="container-fourth">
-                <div class="outside-section"><div @click="amount = 1">1</div></div>
-                <div class="outside-section"><div  @click="amount = 5">5</div></div>
-                <div class="outside-section"><div  @click="amount = 10">10</div></div>
-                <div class="outside-section"><div @click="amount = 25">25</div></div>
-                <div class="outside-section"><div @click="amount = 50">50</div></div>
-                <div class="outside-section"><div @click="amount = 100">100</div></div>
-            </div>
 
+            <div class="container-fourth" x-data="{clicked: 1}">
+                <template x-for="amountValue in [1, 5, 10, 25, 50, 100]">
+                    <div :class="clicked == amountValue ? 'outside-section selectedAmount' : 'outside-section'" @click="amount = amountValue; clicked = amountValue" x-text="amountValue">
+
+                    </div>
+                </template>
+            </div>
             </br>
             <div>
                 <template x-for="bet in bets">
@@ -172,27 +169,24 @@
 
 
     <button @click="$refs.rouletteTable.style.display = 'block'">AddBet</button>
-
-
     <br>
     <button @click="simulate()">Simulate</button>
     <button @click="reset()">Reset</button>
     <div x-show="results.length">
-         <table>
-             <thead>
-                 <tr>
+        <table>
+            <thead>
+                <tr>
                     <th>Simulation</th>
                     <th>Roll</th>
-                     <th>Bets</th>
-                     <th>Amount</th>
-                     <th>Payouts</th>
-                     <th>NetWin</th>
+                    <th>Bets</th>
+                    <th>Amount</th>
+                    <th>Payouts</th>
+                    <th>NetWin</th>
                     <th>Bankroll</th>
                 </tr>
-             </thead>
-             <tbody>
+            </thead>
+            <tbody>
                 <template x-for="(result, index) in results">
-
                     <tr x-init="console.log(result.bets)">
                         <td x-text="index + 1"></td>
                         <td x-text="result.roll"></td>
@@ -220,24 +214,10 @@
                         <td x-text="result.bankroll"></td>
 
                     </tr>
-
-
-
-
-
-
-
-
-
-
-
                 </template>
-             </tbody>
-
+            </tbody>
          </table>
     </div>
-
-
 </div>
 </body>
 
