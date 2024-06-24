@@ -1,0 +1,120 @@
+.container-first {
+	display: flex;
+	flex-flow: column-reverse wrap;
+	align-content: flex-start;
+	width: auto;
+	height: 300px;
+	padding: 0px 0px 0px 20px;
+  border-top: 2px solid white;
+}
+
+.red-item, .black-item, .zero-item {
+  box-sizing: border-box;
+  border: none;
+  border-left: 3px solid white;
+  border-top: 3px solid white;
+
+	padding-bottom: 25px;
+	text-align: center;
+	width: 50px;
+	font-size: 30px;
+	color: white;
+}
+.zero-item {
+	background-color: green;
+    border-bottom: 3px solid white;
+	padding-top: 122px;
+	padding-bottom: 121px;
+}
+.red-item {
+	background-color: red;
+}
+
+.black-item {
+	background-color: black;
+}
+
+.column-item {
+	border: solid white;
+	background-color: green;
+	padding-top: 22px;
+	padding-bottom: 25px;
+	text-align: center;
+	width: 50px;
+	font-size: 30px;
+	color: white;
+}
+
+.container-second {
+	display: flex;
+	width: auto;
+	height: 70px;
+	flex-flow: row wrap;
+	align-content: flex-start;
+	padding: 0px 0px 0px 20px;
+
+}
+
+.doz-item {
+	flex-basis: 233px;
+	border: solid white;
+	background-color: green;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	text-align: center;
+
+	font-size: 30px;
+	color: white;
+}
+
+.container-third {
+	display: flex;
+	width: auto;
+	height: 80px;
+	flex-flow: row wrap;
+	align-content: flex-start;
+	padding: 0px 0px 0px 20px;
+}
+
+.container-fourth {
+	display: flex;
+	width: auto;
+	height: 80px;
+	flex-flow: row wrap;
+	align-content: flex-start;
+	padding: 0px 0px 0px 20px;
+}
+
+.outside-section {
+	flex-basis: 116px;
+	border: solid white;
+	background-color: green;
+	padding-top: 15px;
+	padding-bottom: 60px;
+	text-align: center;
+	height: 20px;
+	font-size: 30px;
+	color: white;
+}
+
+.rhomb-red {
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	background-color: red;
+	border: solid white;
+	transform: rotate(45deg);
+}
+
+.rhomb-black {
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	background-color: black;
+	border: solid white;
+	transform: rotate(45deg);
+}
+
+.value {
+	transform: rotate(-90deg);
+}
