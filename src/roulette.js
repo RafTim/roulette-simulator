@@ -53,6 +53,13 @@ class MultiBet{
          this.bets = bets;
      }
 
+     get name(){
+         if (this.bets.length > 0){
+             return this.bets[0].name;
+         }
+         return "";
+     }
+
      get amount(){
          var sum = 0;
          this.bets.forEach(bet => {
@@ -179,9 +186,10 @@ class BetCreator {
 
         if (this.resetAfterWin && results.length > 0) {
             for (const resultElement of results[results.length - 1].bets) {
-                if (resultElement.hasWon()) {
-                    this.sequencer.reset();
-                    break;
+                for (const key of Object.keys(this.bets)) {
+                    if (resultElement.name === key && resultElement.hasWon()) {
+                        this.sequencer.reset();
+                    }
                 }
             }
 
@@ -204,6 +212,49 @@ class BetCreator {
     }
 }
 
+
+class StopCondition {
+    constructor(name) {
+        this.name = name;
+    }
+
+    shouldStop(startBankroll, bankroll, results){
+        return false;
+    }
+}
+
+class Bankrupt extends StopCondition{
+    constructor(ignore) {
+        super("Bancrupt");
+    }
+
+    shouldStop(startBankroll, bankroll, results){
+        return bankroll <= 0;
+    }
+}
+
+class MaxRolls extends StopCondition{
+    constructor(maxRolls) {
+        super("MaxRolls(" + maxRolls + ")");
+        this.maxRolls = maxRolls;
+    }
+
+    shouldStop(startBankroll, bankroll, results){
+        return results.length >= this.maxRolls;
+    }
+}
+
+class MinWin extends StopCondition{
+    constructor(minWin) {
+        super("MinWin(" + minWin + ")");
+        this.minWin = minWin;
+    }
+
+    shouldStop(startBankroll, bankroll, results){
+        return  bankroll - startBankroll >= this.minWin;
+    }
+
+}
 
 function rouletteNumbers(){
     return {
@@ -295,12 +346,13 @@ function pageData() {
     return {
         bankroll: 400,
 
-        simulations: 50,
+        simulations: 150,
         rouletteNumbers: rouletteNumbers(),
 
         rouletteData: new RouletteData(),
         betCreators: [],
         results: [],
+        stopConditions: [],
         createBets(){
             let bets = [];
 
@@ -320,28 +372,33 @@ function pageData() {
         },
         simulate() {
             this.results = [];
+            this.betCreators.forEach(c => {
+                c.sequencer.reset();
+            });
             let table = new RouletteTable();
-            console.log(this);
+            var broll = this.bankroll;
 
             for (let i = 0; i < this.simulations; i++) {
                 let roll = table.roll();
                 let bets = this.createBets();
                 for (const bet of bets) {
-                    if (this.bankroll <= bet.amount) {
+                    if (broll <= bet.amount) {
                         return;
                     }
-                    this.bankroll -= bet.amount;
+                    broll -= bet.amount;
                     bet.setRoll(roll);
                     if (bet.hasWon()) {
-                        this.bankroll += bet.payout();
+                        broll += bet.payout();
                     }
                 }
-                this.results.push({roll: roll, bets: bets, bankroll: this.bankroll});
-
-
-                if (this.bankroll <= 0) {
-                    break;
+                this.results.push({roll: roll, bets: bets, bankroll: broll});
+                for (const con of this.stopConditions) {
+                    if (con.shouldStop(this.bankroll, broll, this.results)) {
+                        return;
+                    }
                 }
+
+
             }
         },
 

@@ -6,7 +6,7 @@
 
 
     <!-- Minified version -->
-    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+    <link rel="stylesheet" href="simple.min.css">
     <link href="style.css" rel="stylesheet"/>
     <link href="roulette.css" rel="stylesheet"/>
 
@@ -22,8 +22,29 @@
 
 <div x-data="pageData()">
 
-    <span>Bankroll: <input type="number" x-model="bankroll"/></span></br>
-    <span>Simulations: <input type="number" x-model="simulations"/></span></br>
+    <span>Bankroll: <input type="number" x-model="bankroll"/></span><br/>
+    <span>Simulations: <input type="number" x-model="simulations"/></span><br/>
+    <table x-show="stopConditions.length">
+        <tr>
+            <th>Condition</th>
+        </tr>
+        <template x-for="(stop, idx) in stopConditions">
+            <tr  @click="delete stopConditions[idx];">
+                <td x-text="stop.name" @click="$el.remove()"></td>
+            </tr>
+        </template>
+    </table>
+    <span x-data="{stops: ['MinWin', 'MaxRolls', 'Bankrupt'], selected: '', stopValue: 1}">Stop Conditions:
+        <select x-model="selected">
+            <option value=""></option>
+            <template x-for="stop in stops">
+                <option x-text="stop" :value="stop"></option>
+            </template>
+        </select>
+        <input type="number" x-model="stopValue"/>
+        <button @click="stopConditions.push(eval('new ' + selected + '(' + stopValue + ')'))">Add Condition</button>
+    </span><br/>
+
 
 
 
@@ -128,7 +149,7 @@
                 </div>
             </div>
 
-            <div class="container-fourth" x-data="{clicked: 1}">
+            <div class="container-fourth" x-data="{clicked: amount}">
                 <template x-for="amountValue in [1, 5, 10, 25, 50, 100]">
                     <div :class="clicked == amountValue ? 'outside-section selectedAmount' : 'outside-section'" @click="amount = amountValue; clicked = amountValue" x-text="amountValue">
 
