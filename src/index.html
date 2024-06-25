@@ -29,8 +29,8 @@
             <th>Condition</th>
         </tr>
         <template x-for="(stop, idx) in stopConditions">
-            <tr  @click="delete stopConditions[idx];">
-                <td x-text="stop.name" @click="$el.remove()"></td>
+            <tr>
+                <td x-text="stop.name" @click="$el.remove(); delete stopConditions[idx];"></td>
             </tr>
         </template>
     </table>
