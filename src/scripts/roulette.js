@@ -115,6 +115,14 @@ class Sequencer {
     }
 }
 
+class WithoutSequencer extends Sequencer {
+
+
+    constructor() {
+        super();
+    }
+}
+
 class FibonacciSequencer extends Sequencer {
 
 
@@ -172,34 +180,58 @@ class DalambertSequencer extends Sequencer {
 }
 
 class BetCreator {
-    constructor(maxBet, sequencer, bets, resetAfterWin = true) {
+    constructor(maxBet, sequencer, bets, resetAfterWin = true, onPreviousCondition = false, consecutiveAmount = 1, conditionAmountPercent = 100, amountUnit = "unit") {
         this.maxBet = maxBet;
         let sn = sequencer.split(" ");
+        this.winStreak = 0;
+        this.loseStreak = 0;
 
         this.sequencerName = sn[sn.length -1];
         this.sequencer = eval(sequencer);
         this.bets = bets;
         this.resetAfterWin = resetAfterWin;
+        this.onPreviousCondition = onPreviousCondition;
+        this.consecutiveAmount = consecutiveAmount;
+        this.conditionAmountPercent = conditionAmountPercent;
+        this.amountUnit = amountUnit;
     }
 
     createBet(results) {
 
-        if (this.resetAfterWin && results.length > 0) {
+        if (results.length > 0) {
             for (const resultElement of results[results.length - 1].bets) {
                 for (const key of Object.keys(this.bets)) {
-                    if (resultElement.name === key && resultElement.hasWon()) {
-                        this.sequencer.reset();
+                    if (resultElement.name === key) {
+                        if (this.resetAfterWin && resultElement.hasWon()) {
+                          this.sequencer.reset();
+                        }
+
+                        if (resultElement.hasWon()) {
+                          this.winStreak++;
+                          this.loseStreak = 0;
+                        }
+                        else {
+                          this.winStreak = 0;
+                          this.loseStreak++;
+                        }
                     }
                 }
             }
-
         }
         let next = this.sequencer.next();
 
         var bets = [];
         for (const key of Object.keys(this.bets)) {
             let bet = this.bets[key];
-            bets.push(new Bet(bet.name, bet.amount * next, bet.numbers));
+            let playBet = true;
+
+            if (this.onPreviousCondition !== false) {
+              // to do: hier playBet = shouldPlay();
+            }
+
+            if (playBet) {
+              bets.push(new Bet(bet.name, bet.amount * next, bet.numbers));
+            }
 
         }
         let mb = new MultiBet(bets);
@@ -212,6 +244,65 @@ class BetCreator {
     }
 }
 
+class StartCondition {
+  constructor(name) {
+      this.name = name;
+  }
+
+  shouldStart(startBankroll, bankroll, results){
+      return true;
+  }
+}
+
+
+//win / lose / concecutiveLose / consecutiveWin / resultAmountPercentFromPreviousBet
+class ConsecutiveWin extends StartCondition {
+  constructor(wins) {
+      this.wins = wins;
+      super("ConsecutiveWin (" + wins + ")");
+  }
+
+  shouldStart(currentWins){
+      return currentWins >= this.wins;
+  }
+}
+
+class Win extends ConsecutiveWin {
+  constructor(ignore) {
+      this.wins = 1;
+      super("Win");
+  }
+}
+
+class ConsecutiveLose extends StartCondition {
+  constructor(loses) {
+      this.loses = loses;
+      super("ConsecutiveLose (" + loses + ")");
+  }
+
+  shouldStart(currentLoses){
+      return currentLoses >= this.loses;
+  }
+}
+
+class Lose extends ConsecutiveLose {
+  constructor(ignore) {
+      this.loses = 1;
+      super("Lose");
+  }
+}
+
+// z.b. für 3 bet entry
+class AmountPercentFromPreviousBetResult extends StartCondition {
+  constructor(percent) {
+      this.percent = percent;
+      super("AmountPercentFromPreviousBetResult (" + percent + "%)");
+  }
+
+  shouldStart(results) {
+      return results[results.length-1].bets[results[results.length-1].bets.length-1].payout()  >= results[results.length-1].bets[results[results.length-1].bets.length-1].amount / 100 * percent;
+  }
+}
 
 class StopCondition {
     constructor(name) {
@@ -307,7 +398,10 @@ class RouletteData {
         this.sequencer = '';
         this.bets = {};
         this.resetAfterWin = true;
-
+        this.onPreviousCondition = false; // false / win / lose / concecutiveLose / consecutiveWin / amountPercentFromPreviousBetResult
+        this.consecutiveAmount = 1;
+        this.conditionAmountPercent = 0;
+        this.amountUnit = "unit"; // unit / percentFromPreviousBet / percentFromPreviousResult
     }
 
 
@@ -331,7 +425,7 @@ class RouletteData {
 
 
     enterBets(){
-        let creator = new BetCreator(this.maxBet, this.sequencer, this.bets, this.resetAfterWin);
+        let creator = new BetCreator(this.maxBet, this.sequencer, this.bets, this.resetAfterWin, this.onPreviousCondition, this.consecutiveAmount, this.conditionAmountPercent, this.amountUnit);
         this.bets = {};
 
         return creator;
@@ -418,6 +512,10 @@ function pageData() {
 function sequencerOptions() {
     return [
         {
+            name: "NoSequence",
+            value: "new WithoutSequencer()"
+        },
+        {
             name: "Fibonacci",
             value: "new FibonacciSequencer()"
         },
@@ -432,6 +530,6 @@ function sequencerOptions() {
         {
             name: "Dalambert",
             value: "new DalambertSequencer(1)"
-        }
+        },
     ];
 }
