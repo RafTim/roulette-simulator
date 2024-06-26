@@ -199,24 +199,28 @@ class BetCreator {
     createBet(results) {
 
         if (results.length > 0) {
-            for (const resultElement of results[results.length - 1].bets) {
-                for (const key of Object.keys(this.bets)) {
-                    if (resultElement.name === key) {
-                        if (this.resetAfterWin && resultElement.hasWon()) {
-                          this.sequencer.reset();
-                        }
+          for (let i = 0; i < results.length; i++) {
+            if (results[i].length > 0) {
+              for (const resultElement of results[i][results[i].length - 1].bets) {
+                  for (const key of Object.keys(this.bets)) {
+                      if (resultElement.name === key) {
+                          if (this.resetAfterWin && resultElement.hasWon()) {
+                            this.sequencer.reset();
+                          }
 
-                        if (resultElement.hasWon()) {
-                          this.winStreak++;
-                          this.loseStreak = 0;
-                        }
-                        else {
-                          this.winStreak = 0;
-                          this.loseStreak++;
-                        }
-                    }
-                }
+                          if (resultElement.hasWon()) {
+                            this.winStreak++;
+                            this.loseStreak = 0;
+                          }
+                          else {
+                            this.winStreak = 0;
+                            this.loseStreak++;
+                          }
+                      }
+                  }
+              }
             }
+          }
         }
         let next = this.sequencer.next();
 
@@ -300,6 +304,7 @@ class AmountPercentFromPreviousBetResult extends StartCondition {
   }
 
   shouldStart(results) {
+    // to do: fix
       return results[results.length-1].bets[results[results.length-1].bets.length-1].payout()  >= results[results.length-1].bets[results[results.length-1].bets.length-1].amount / 100 * percent;
   }
 }
@@ -440,7 +445,7 @@ function pageData() {
     return {
         bankroll: 400,
 
-        simulations: 150,
+        simulations: 10,
         rouletteNumbers: rouletteNumbers(),
 
         rouletteData: new RouletteData(),
@@ -472,12 +477,15 @@ function pageData() {
             let table = new RouletteTable();
             var broll = this.bankroll;
 
-            for (let i = 0; i < this.simulations; i++) {
+            let simulation = 1;
+            let betEnd = false;
+            while (simulation <= this.simulations) {
                 let roll = table.roll();
                 let bets = this.createBets();
                 for (const bet of bets) {
                     if (broll <= bet.amount) {
-                        return;
+                        betEnd = true;
+                        break;
                     }
                     broll -= bet.amount;
                     bet.setRoll(roll);
@@ -485,11 +493,26 @@ function pageData() {
                         broll += bet.payout();
                     }
                 }
-                this.results.push({roll: roll, bets: bets, bankroll: broll});
+                this.results.push({roll: roll, bets: bets, bankroll: broll, simulation: simulation});
                 for (const con of this.stopConditions) {
                     if (con.shouldStop(this.bankroll, broll, this.results)) {
-                        return;
+                        betEnd = true;
+                        break;
                     }
+                }
+
+                if (betEnd) {
+                  this.betCreators.forEach(c => {
+                      c.sequencer.reset();
+                  });
+                  broll = this.bankroll;
+                  betEnd = false;
+                  simulation++;
+                }
+
+                // zur sicherheit
+                if (simulation >= 100) {
+                  break;
                 }
 
 
