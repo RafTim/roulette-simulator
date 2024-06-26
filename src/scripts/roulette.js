@@ -231,6 +231,24 @@ class BetCreator {
 
             if (this.onPreviousCondition !== false) {
               // to do: hier playBet = shouldPlay();
+              let shouldPlay = false;
+              switch(this.onPreviousCondition) {
+                case "Win":
+                  shouldPlay = (new Win().shouldStart());
+                  break;
+                case "Lose":
+                  shouldPlay = (new Lose().shouldStart());
+                  break;
+                case "ConsecutiveWin":
+                  shouldPlay = (new ConsecutiveWin(this.consecutiveAmount).shouldStart());
+                  break;
+                case "ConsecutiveLose":
+                  shouldPlay = (new ConsecutiveLose(this.consecutiveAmount).shouldStart());
+                  break;
+                case "ResultAmountPercentFromPreviousBet":
+                  shouldPlay = (new ResultAmountPercentFromPreviousBet(results).shouldStart());
+                  break;
+              }
             }
 
             if (playBet) {
@@ -253,13 +271,13 @@ class StartCondition {
       this.name = name;
   }
 
-  shouldStart(startBankroll, bankroll, results){
+  shouldStart(){
       return true;
   }
 }
 
 
-//win / lose / concecutiveLose / consecutiveWin / resultAmountPercentFromPreviousBet
+//Win / Lose / ConcecutiveLose / ConsecutiveWin / ResultAmountPercentFromPreviousBet
 class ConsecutiveWin extends StartCondition {
   constructor(wins) {
       this.wins = wins;
@@ -493,6 +511,9 @@ function pageData() {
                     if (bet.hasWon()) {
                         totalResult += bet.netWin();
                         broll += bet.payout();
+                        this.betCreators.forEach(c => {
+                            c.sequencer.reset();
+                        });
                     }
                     else {
                       totalResult -= bet.amount;
@@ -516,7 +537,7 @@ function pageData() {
                 }
 
                 // zur sicherheit
-                if (simulation >= 100) {
+                if (simulation > 100) {
                   break;
                 }
 
