@@ -479,6 +479,7 @@ function pageData() {
 
             let simulation = 1;
             let betEnd = false;
+            let totalResult = 0;
             while (simulation <= this.simulations) {
                 let roll = table.roll();
                 let bets = this.createBets();
@@ -490,10 +491,14 @@ function pageData() {
                     broll -= bet.amount;
                     bet.setRoll(roll);
                     if (bet.hasWon()) {
+                        totalResult += bet.netWin();
                         broll += bet.payout();
                     }
+                    else {
+                      totalResult -= bet.amount;
+                    }
                 }
-                this.results.push({roll: roll, bets: bets, bankroll: broll, simulation: simulation});
+                this.results.push({roll: roll, bets: bets, bankroll: broll, simulation: simulation, totalResult: totalResult});
                 for (const con of this.stopConditions) {
                     if (con.shouldStop(this.bankroll, broll, this.results)) {
                         betEnd = true;
