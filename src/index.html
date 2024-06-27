@@ -61,7 +61,9 @@
             <span>Sequencer:
                 <select x-model="sequencer">
                     <option value="">Please select...</option>
-                    <!-- to do: keine ahnung, wie ich hier den wert sequenceOffset.value als parameter übergeben kann -->
+                    <!-- to do: keine ahnung, wie ich hier den wert sequenceOffset.value als parameter übergeben kann
+                        ich brauche hier sowas wie sequenceOffset.onchange -> lade liste neu mit neuem offset als parameter
+                   -->
                     <template x-for="seq in sequencerOptions(sequenceOffset.value)">
                         <option x-text="seq.name" :value="seq.value"></option>
                     </template>
