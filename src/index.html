@@ -51,7 +51,7 @@
     <div x-ref="rouletteTable" class="modal">
         <div class="modal-content"   x-data="rouletteData">
 
-            <span>MaxBet: <input type="number" x-model="maxBet"/></span>
+            <span>MaxBet: <input type="number" x-model="maxBet" style="width:120px;" /></span>
             <span>AmountUnit:
                 <select x-model="amountUnit">
                     <option value="unit">Unit</option>
@@ -61,7 +61,8 @@
             <span>Sequencer:
                 <select x-model="sequencer">
                     <option value="">Please select...</option>
-                    <template x-for="seq in sequencerOptions()">
+                    <!-- to do: keine ahnung, wie ich hier den wert sequenceOffset.value als parameter übergeben kann -->
+                    <template x-for="seq in sequencerOptions(sequenceOffset.value)">
                         <option x-text="seq.name" :value="seq.value"></option>
                     </template>
                 </select>
@@ -73,6 +74,7 @@
                     <option value="Win">Win</option>
                 </select>
             </span>
+            <span>SequenceOffset: <input type="number" x-model="sequenceOffset" style="width:70px;" /></span>
             <br/>
             <span>OnPreviousCondition:
                 <select x-model="onPreviousCondition">
