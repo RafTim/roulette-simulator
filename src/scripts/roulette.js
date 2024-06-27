@@ -162,7 +162,7 @@ class FactorSequencer extends Sequencer {
     }
 
     currentNumber() {
-      return this.current;
+      return Math.pow(this.factor,  this.current);
     }
 
     next() {
