@@ -249,22 +249,23 @@ class BetCreator {
 
             if (this.onPreviousCondition !== false && this.onPreviousCondition !== "") {
               // to do: refactor eigene Klasse ConditionalBet extends MultiBet mit handling
-              let shouldPlay = false;
+              playBet = false;
               switch(this.onPreviousCondition) {
                 case "Win":
-                  shouldPlay = (new Win().shouldStart());
+                  playBet = (new Win().shouldStart());
+                  console.log('should play: ' + (playBet ? 'true' : 'false'));
                   break;
                 case "Lose":
-                  shouldPlay = (new Lose().shouldStart());
+                  playBet = (new Lose().shouldStart());
                   break;
                 case "ConsecutiveWin":
-                  shouldPlay = (new ConsecutiveWin(this.consecutiveAmount).shouldStart());
+                  playBet = (new ConsecutiveWin(this.consecutiveAmount).shouldStart());
                   break;
                 case "ConsecutiveLose":
-                  shouldPlay = (new ConsecutiveLose(this.consecutiveAmount).shouldStart());
+                  playBet = (new ConsecutiveLose(this.consecutiveAmount).shouldStart());
                   break;
                 case "ResultAmountPercentFromPreviousBet":
-                  shouldPlay = (new ResultAmountPercentFromPreviousBet(results).shouldStart());
+                  playBet = (new ResultAmountPercentFromPreviousBet(results).shouldStart());
                   break;
               }
             }
@@ -298,8 +299,8 @@ class StartCondition {
 //Win / Lose / ConcecutiveLose / ConsecutiveWin / ResultAmountPercentFromPreviousBet
 class ConsecutiveWin extends StartCondition {
   constructor(wins) {
-      this.wins = wins;
       super("ConsecutiveWin (" + wins + ")");
+      this.wins = wins;
   }
 
   shouldStart(currentWins){
@@ -309,15 +310,15 @@ class ConsecutiveWin extends StartCondition {
 
 class Win extends ConsecutiveWin {
   constructor(ignore) {
-      this.wins = 1;
       super("Win");
+      this.wins = 1;
   }
 }
 
 class ConsecutiveLose extends StartCondition {
   constructor(loses) {
-      this.loses = loses;
       super("ConsecutiveLose (" + loses + ")");
+      this.loses = loses;
   }
 
   shouldStart(currentLoses){
@@ -327,16 +328,16 @@ class ConsecutiveLose extends StartCondition {
 
 class Lose extends ConsecutiveLose {
   constructor(ignore) {
-      this.loses = 1;
       super("Lose");
+      this.loses = 1;
   }
 }
 
 // z.b. für 3 bet entry
 class AmountPercentFromPreviousBetResult extends StartCondition {
   constructor(percent) {
-      this.percent = percent;
       super("AmountPercentFromPreviousBetResult (" + percent + "%)");
+      this.percent = percent;
   }
 
   shouldStart(results) {
