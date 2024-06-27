@@ -52,15 +52,43 @@
         <div class="modal-content"   x-data="rouletteData">
 
             <span>MaxBet: <input type="number" x-model="maxBet"/></span>
+            <span>AmountUnit:
+                <select x-model="amountUnit">
+                    <option value="unit">Unit</option>
+                    <option value="percent">Percent</option>
+                </select>
+            </span>
             <span>Sequencer:
                 <select x-model="sequencer">
-                    <option value="">Select a Sequence</option>
+                    <option value="">Please select...</option>
                     <template x-for="seq in sequencerOptions()">
                         <option x-text="seq.name" :value="seq.value"></option>
                     </template>
                 </select>
             </span>
+            <span>SequenceStepper: <input type="number" x-model="sequenceStepper" style="width:70px;" /></span>
+            <span>SequencerStepperStreak:
+                <select x-model="sequenceStepperStreak">
+                    <option value="Lose">Lose</option>
+                    <option value="Win">Win</option>
+                </select>
+            </span>
+            <br/>
+            <span>OnPreviousCondition:
+                <select x-model="onPreviousCondition">
+                    <option value="">no previous condition</option>
+                    <option value="Win">Win</option>
+                    <option value="Lose">Lose</option>
+                    <option value="ConsecutiveWin">Consecutive Win Streak</option>
+                    <option value="ConsecutiveWin">Consecutive Lose Streak</option>
+                    <option value="AmountPercentFromPreviousBetResult">Amount in percent from previous bet result</option>
+                </select>
+            </span>
+            <span>ConsecutiveAmount: <input type="number" x-model="consecutiveAmount" style="width:70px;" /></span>
+            <span>ConditionAmountPercent: <input type="number" x-model="conditionAmountPercent" style="width:70px;" /></span>
             <span><input type="checkbox" x-model="resetAfterWin">Reset After <span x-show="resetAfterWin">Win</span><span x-show="!resetAfterWin">Loss</span></input></span>
+
+
             <span class="close" @click="$refs.rouletteTable.style.display = 'none'">&times;</span>
 
 
@@ -198,44 +226,51 @@
             <thead>
                 <tr>
                     <th>Simulation</th>
+                    <th>Round</th>
                     <th>Roll</th>
                     <th>Bets</th>
                     <th>Amount</th>
                     <th>Payouts</th>
                     <th>NetWin</th>
                     <th>Bankroll</th>
+                    <th>&nbsp;</th>
+                    <th>Total Result</th>
                 </tr>
             </thead>
             <tbody>
-                <template x-for="(result, index) in results">
-                    <tr x-init="console.log(result.bets)">
-                        <td x-text="index + 1"></td>
-                        <td x-text="result.roll"></td>
+                  <template x-for="(result, index) in results">
+                      <tr x-init="console.log(result.bets)">
+                          <td x-text="result.simulation"></td>
+                          <td x-text="index + 1"></td>
+                          <td x-text="result.roll"></td>
 
-                        <td>
-                            <template x-for="b in result.bets">
-                                <div x-text="b" ></div>
-                            </template>
-                        </td>
-                        <td>
-                            <template x-for="b in result.bets">
-                                <div x-text="b.amount" ></div>
-                            </template>
-                        </td>
-                        <td>
-                            <template x-for="b in result.bets">
-                                <div x-text="b.payout()"></div>
-                            </template>
-                        </td>
-                         <td>
-                            <template x-for="b in result.bets">
-                                <div x-text="b.netWin()"></div>
-                            </template>
-                        </td>
-                        <td x-text="result.bankroll"></td>
+                          <td>
+                              <template x-for="b in result.bets">
+                                  <div x-text="b" ></div>
+                              </template>
+                          </td>
+                          <td>
+                              <template x-for="b in result.bets">
+                                  <div x-text="b.amount" ></div>
+                              </template>
+                          </td>
+                          <td>
+                              <template x-for="b in result.bets">
+                                  <div x-text="b.payout()"></div>
+                              </template>
+                          </td>
+                           <td>
+                              <template x-for="b in result.bets">
+                                  <div x-text="b.netWin()"></div>
+                              </template>
+                          </td>
+                          <td x-text="result.bankroll"></td>
 
-                    </tr>
-                </template>
+                          <td>&nbsp;</td>
+                          <td x-text="result.totalResult"></td>
+
+                      </tr>
+                    </template>
             </tbody>
          </table>
     </div>
