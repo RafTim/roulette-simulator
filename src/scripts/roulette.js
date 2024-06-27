@@ -103,11 +103,76 @@ class MultiBet{
      }
 }
 
+class ConditionalBet extends MultiBet {
+
+  constructor(bets, onPreviousCondition, consecutiveAmount, conditionAmountPercent) {
+      super(bets);
+      this.bets = bets;
+      this.onPreviousCondition = onPreviousCondition;
+      this.consecutiveAmount = consecutiveAmount;
+      this.conditionAmountPercent = conditionAmountPercent;
+  }
+
+  get name(){
+      if (this.bets.length > 0){
+          return this.bets[0].name;
+      }
+      return "";
+  }
+
+  get amount(){
+      var sum = 0;
+      this.bets.forEach(bet => {
+          sum += bet.amount;
+      });
+      return sum;
+  }
+
+  payout(){
+      var sum = 0;
+      this.bets.forEach(bet => {
+          let po = bet.payout();
+          if (po > 0){
+              sum += bet.payout();
+          }
+
+      });
+      return sum;
+  }
+
+  netWin(){
+      return this.payout() - this.amount;
+  }
+
+  hasWon(){
+      return this.netWin() > 0;
+  }
+
+  setRoll(number){
+      this.bets.forEach(bet => {
+          bet.setRoll(number);
+      });
+  }
+
+  toString(){
+      var s = "";
+      this.bets.forEach(bet => {
+          s += `${bet.toString()}`;
+      });
+      return s;
+  }
+
+}
+
 class Sequencer {
 
+    constructor(offset = 0) {
+        this.offset = offset;
+    }
 
     next() {
-        return 1;
+        // to do : offset
+        return 1 + this.offset;
     }
 
     currentNumber() {
@@ -122,16 +187,16 @@ class Sequencer {
 class WithoutSequencer extends Sequencer {
 
 
-    constructor() {
-        super();
+    constructor(offset = 0) {
+        super(offset);
     }
 }
 
 class FibonacciSequencer extends Sequencer {
 
 
-    constructor() {
-        super();
+    constructor(offset = 0) {
+        super(offset);
         this.current = 0;
         this.nextV = 1;
     }
@@ -141,6 +206,7 @@ class FibonacciSequencer extends Sequencer {
     }
 
     next() {
+        // to do: offset
         let next = this.current + this.nextV;
         this.current = this.nextV;
         this.nextV = next;
@@ -155,8 +221,8 @@ class FibonacciSequencer extends Sequencer {
 
 class FactorSequencer extends Sequencer {
 
-    constructor(factor) {
-        super();
+    constructor(factor, offset = 0) {
+        super(offset);
         this.factor = factor;
         this.current = 0;
     }
@@ -166,6 +232,7 @@ class FactorSequencer extends Sequencer {
     }
 
     next() {
+        // to do: offset
         return Math.pow(this.factor,  this.current++);
     }
 
@@ -176,8 +243,8 @@ class FactorSequencer extends Sequencer {
 
 class DalambertSequencer extends Sequencer {
 
-    constructor(factor) {
-        super();
+    constructor(factor, offset = 0) {
+        super(offset);
         this.factor = factor;
         this.current = 0;
     }
@@ -187,6 +254,7 @@ class DalambertSequencer extends Sequencer {
     }
 
     next(){
+        // to do: offset
         return this.current++ * this.factor;
     }
 
@@ -196,12 +264,13 @@ class DalambertSequencer extends Sequencer {
 }
 
 class BetCreator {
-    constructor(maxBet, sequencer, bets, resetAfterWin = true, sequenceStepper = 1, sequenceStepperStreak = "loseStreak", onPreviousCondition = false, consecutiveAmount = 1, conditionAmountPercent = 100, amountUnit = "unit") {
+    constructor(maxBet, sequencer, bets, resetAfterWin = true, sequenceOffset = 0, sequenceStepper = 1, sequenceStepperStreak = "loseStreak", onPreviousCondition = false, consecutiveAmount = 1, conditionAmountPercent = 100, amountUnit = "unit") {
         this.maxBet = maxBet;
         let sn = sequencer.split(" ");
         this.winStreak = 0;
         this.loseStreak = 0;
 
+        this.sequenceOffset = sequenceOffset;
         this.sequencerName = sn[sn.length -1];
         this.sequencer = eval(sequencer);
         this.sequenceStepper = sequenceStepper;
@@ -275,7 +344,7 @@ class BetCreator {
             }
 
         }
-        let mb = new MultiBet(bets);
+        let mb = new ConditionalBet(bets, this.onPreviousCondition, this.consecutiveAmount, this.conditionAmountPercent);
         if (mb.amount > this.maxBet){
             this.sequencer.reset();
             return this.createBet(results);
@@ -443,6 +512,7 @@ class RouletteData {
 
         this.bets = {};
         this.resetAfterWin = true;
+        this.sequenceOffset = 0;
         this.onPreviousCondition = false; // false / win / lose / concecutiveLose / consecutiveWin / amountPercentFromPreviousBetResult
         this.consecutiveAmount = 1;
         this.conditionAmountPercent = 0;
@@ -470,7 +540,7 @@ class RouletteData {
 
 
     enterBets(){
-        let creator = new BetCreator(this.maxBet, this.sequencer, this.bets, this.resetAfterWin, this.sequenceStepper, this.sequenceStepperStreak, this.onPreviousCondition, this.consecutiveAmount, this.conditionAmountPercent, this.amountUnit);
+        let creator = new BetCreator(this.maxBet, this.sequencer, this.bets, this.resetAfterWin, this.sequenceOffset, this.sequenceStepper, this.sequenceStepperStreak, this.onPreviousCondition, this.consecutiveAmount, this.conditionAmountPercent, this.amountUnit);
         this.bets = {};
 
         return creator;
@@ -580,27 +650,27 @@ function pageData() {
 }
 
 
-function sequencerOptions() {
+function sequencerOptions(sequenceOffset = 0) {
     return [
         {
             name: "NoSequence",
-            value: "new WithoutSequencer()"
+            value: "new WithoutSequencer("+sequenceOffset+")"
         },
         {
             name: "Fibonacci",
-            value: "new FibonacciSequencer()"
+            value: "new FibonacciSequencer("+sequenceOffset+")"
         },
         {
             name: "Martingale",
-            value: "new FactorSequencer(2)"
+            value: "new FactorSequencer(2,"+sequenceOffset+")"
         },
         {
             name: "TripleMartingale",
-            value: "new FactorSequencer(3)"
+            value: "new FactorSequencer(3,"+sequenceOffset+")"
         },
         {
             name: "Dalambert",
-            value: "new DalambertSequencer(1)"
+            value: "new DalambertSequencer(1,"+sequenceOffset+")"
         },
     ];
 }
