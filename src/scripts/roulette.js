@@ -111,6 +111,40 @@ class ConditionalBet extends MultiBet {
       this.onPreviousCondition = onPreviousCondition;
       this.consecutiveAmount = consecutiveAmount;
       this.conditionAmountPercent = conditionAmountPercent;
+
+      this.conditionalFilter();
+  }
+
+  conditionalFilter() {
+    let playBet = true;
+
+    if (this.onPreviousCondition !== false && this.onPreviousCondition !== "") {
+      playBet = false;
+      switch(this.onPreviousCondition) {
+        case "Win":
+          playBet = (new Win().shouldStart(winStreak));
+          console.log('should play: ' + (playBet ? 'true' : 'false'));
+          break;
+        case "Lose":
+          playBet = (new Lose().shouldStart(loseStreak));
+          break;
+        case "ConsecutiveWin":
+          playBet = (new ConsecutiveWin(this.consecutiveAmount).shouldStart(winStreak));
+          break;
+        case "ConsecutiveLose":
+          playBet = (new ConsecutiveLose(this.consecutiveAmount).shouldStart(loseStreak));
+          break;
+        case "ResultAmountPercentFromPreviousBet":
+          // to do
+          //playBet = (new ResultAmountPercentFromPreviousBet(results).shouldStart());
+          break;
+      }
+    }
+
+    if(!playBet) {
+      console.log("should not play bet " + this.toString() + ' - onPreviousCondition: ' + this.onPreviousCondition);
+      this.bets = [];
+    }
   }
 
   get name(){
@@ -263,12 +297,13 @@ class DalambertSequencer extends Sequencer {
     }
 }
 
+var winStreak = 0;
+var loseStreak = 0;
+
 class BetCreator {
     constructor(maxBet, sequencer, bets, resetAfterWin = true, sequenceOffset = 0, sequenceStepper = 1, sequenceStepperStreak = "loseStreak", onPreviousCondition = false, consecutiveAmount = 1, conditionAmountPercent = 100, amountUnit = "unit") {
         this.maxBet = maxBet;
         let sn = sequencer.split(" ");
-        this.winStreak = 0;
-        this.loseStreak = 0;
 
         this.sequenceOffset = sequenceOffset;
         this.sequencerName = sn[sn.length -1];
@@ -294,12 +329,12 @@ class BetCreator {
                           }
 
                           if (resultElement.hasWon()) {
-                            this.winStreak++;
-                            this.loseStreak = 0;
+                            winStreak++;
+                            loseStreak = 0;
                           }
                           else {
-                            this.winStreak = 0;
-                            this.loseStreak++;
+                            winStreak = 0;
+                            loseStreak++;
                           }
                       }
                   }
@@ -314,35 +349,7 @@ class BetCreator {
         var bets = [];
         for (const key of Object.keys(this.bets)) {
             let bet = this.bets[key];
-            let playBet = true;
-
-            if (this.onPreviousCondition !== false && this.onPreviousCondition !== "") {
-              // to do: refactor eigene Klasse ConditionalBet extends MultiBet mit handling
-              playBet = false;
-              switch(this.onPreviousCondition) {
-                case "Win":
-                  playBet = (new Win().shouldStart());
-                  console.log('should play: ' + (playBet ? 'true' : 'false'));
-                  break;
-                case "Lose":
-                  playBet = (new Lose().shouldStart());
-                  break;
-                case "ConsecutiveWin":
-                  playBet = (new ConsecutiveWin(this.consecutiveAmount).shouldStart());
-                  break;
-                case "ConsecutiveLose":
-                  playBet = (new ConsecutiveLose(this.consecutiveAmount).shouldStart());
-                  break;
-                case "ResultAmountPercentFromPreviousBet":
-                  playBet = (new ResultAmountPercentFromPreviousBet(results).shouldStart());
-                  break;
-              }
-            }
-
-            if (playBet) {
-              bets.push(new Bet(bet.name, bet.amount * next, bet.numbers));
-            }
-
+            bets.push(new Bet(bet.name, bet.amount * next, bet.numbers));
         }
         let mb = new ConditionalBet(bets, this.onPreviousCondition, this.consecutiveAmount, this.conditionAmountPercent);
         if (mb.amount > this.maxBet){
@@ -533,6 +540,7 @@ class RouletteData {
         if (this.bets.hasOwnProperty(name)) {
             this.bets[name].amount += this.amount;
         } else {
+            //this.bets[name] = {numbers: numbers, amount: this.amount, name: name, onPreviousCondition: this.onPreviousCondition, consecutiveAmount: this.consecutiveAmount, conditionAmountPercent: this.conditionAmountPercent};
             this.bets[name] = {numbers: numbers, amount: this.amount, name: name};
         }
     }
@@ -648,7 +656,6 @@ function pageData() {
 
     };
 }
-
 
 function sequencerOptions(sequenceOffset = 0) {
     return [
