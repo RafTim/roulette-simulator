@@ -110,6 +110,10 @@ class Sequencer {
         return 1;
     }
 
+    currentNumber() {
+      return 1;
+    }
+
     reset() {
 
     }
@@ -130,6 +134,10 @@ class FibonacciSequencer extends Sequencer {
         super();
         this.current = 0;
         this.nextV = 1;
+    }
+
+    currentNumber() {
+      return this.current;
     }
 
     next() {
@@ -153,6 +161,10 @@ class FactorSequencer extends Sequencer {
         this.current = 0;
     }
 
+    currentNumber() {
+      return this.current;
+    }
+
     next() {
         return Math.pow(this.factor,  this.current++);
     }
@@ -170,6 +182,10 @@ class DalambertSequencer extends Sequencer {
         this.current = 0;
     }
 
+    currentNumber() {
+      return this.current;
+    }
+
     next(){
         return this.current++ * this.factor;
     }
@@ -180,7 +196,7 @@ class DalambertSequencer extends Sequencer {
 }
 
 class BetCreator {
-    constructor(maxBet, sequencer, bets, resetAfterWin = true, onPreviousCondition = false, consecutiveAmount = 1, conditionAmountPercent = 100, amountUnit = "unit") {
+    constructor(maxBet, sequencer, bets, resetAfterWin = true, sequenceStepper = 1, sequenceStepperStreak = "loseStreak", onPreviousCondition = false, consecutiveAmount = 1, conditionAmountPercent = 100, amountUnit = "unit") {
         this.maxBet = maxBet;
         let sn = sequencer.split(" ");
         this.winStreak = 0;
@@ -188,6 +204,8 @@ class BetCreator {
 
         this.sequencerName = sn[sn.length -1];
         this.sequencer = eval(sequencer);
+        this.sequenceStepper = sequenceStepper;
+        this.sequenceStepperStreak = sequenceStepperStreak;
         this.bets = bets;
         this.resetAfterWin = resetAfterWin;
         this.onPreviousCondition = onPreviousCondition;
@@ -199,9 +217,7 @@ class BetCreator {
     createBet(results) {
 
         if (results.length > 0) {
-          for (let i = 0; i < results.length; i++) {
-            if (results[i].length > 0) {
-              for (const resultElement of results[i][results[i].length - 1].bets) {
+              for (const resultElement of results[results.length - 1].bets) {
                   for (const key of Object.keys(this.bets)) {
                       if (resultElement.name === key) {
                           if (this.resetAfterWin && resultElement.hasWon()) {
@@ -219,18 +235,20 @@ class BetCreator {
                       }
                   }
               }
-            }
-          }
         }
-        let next = this.sequencer.next();
+
+        let next = this.sequencer.currentNumber();
+        if (next === 0 || (this[this.sequenceStepperStreak] > 0 && this[this.sequenceStepperStreak] % this.sequenceStepper === 0) || this.sequenceStepper === 0) {
+          next = this.sequencer.next();
+        }
 
         var bets = [];
         for (const key of Object.keys(this.bets)) {
             let bet = this.bets[key];
             let playBet = true;
 
-            if (this.onPreviousCondition !== false) {
-              // to do: hier playBet = shouldPlay();
+            if (this.onPreviousCondition !== false && this.onPreviousCondition !== "") {
+              // to do: refactor eigene Klasse ConditionalBet extends MultiBet mit handling
               let shouldPlay = false;
               switch(this.onPreviousCondition) {
                 case "Win":
@@ -419,6 +437,9 @@ class RouletteData {
         this.amount = 1;
         this.maxBet = 50
         this.sequencer = '';
+        this.sequenceStepper = 1; // next() every x
+        this.sequenceStepperStreak = "loseStreak"; // next() every x wins/loses
+
         this.bets = {};
         this.resetAfterWin = true;
         this.onPreviousCondition = false; // false / win / lose / concecutiveLose / consecutiveWin / amountPercentFromPreviousBetResult
@@ -448,7 +469,7 @@ class RouletteData {
 
 
     enterBets(){
-        let creator = new BetCreator(this.maxBet, this.sequencer, this.bets, this.resetAfterWin, this.onPreviousCondition, this.consecutiveAmount, this.conditionAmountPercent, this.amountUnit);
+        let creator = new BetCreator(this.maxBet, this.sequencer, this.bets, this.resetAfterWin, this.sequenceStepper, this.sequenceStepperStreak, this.onPreviousCondition, this.consecutiveAmount, this.conditionAmountPercent, this.amountUnit);
         this.bets = {};
 
         return creator;
