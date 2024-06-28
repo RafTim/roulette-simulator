@@ -342,7 +342,7 @@ class BetCreator {
         }
 
         let next = this.sequencer.currentNumber();
-        if (next === 0 || (this[this.sequenceStepperStreak] > 0 && this[this.sequenceStepperStreak] % this.sequenceStepper === 0) || this.sequenceStepper === 0) {
+        if (next === 0 || (this[this.sequenceStepperStreak] > 0 && this[this.sequenceStepperStreak] % this.sequenceStepper === 0) || this.sequenceStepper === 0 || this.sequenceStepper === 1) {
           next = this.sequencer.next();
         }
 
@@ -649,6 +649,8 @@ function pageData() {
           this.results = [];
           this.betCreators = [];
           this.rouletteData = new RouletteData();
+          loseStreak = 0;
+          winStreak = 0;
         },
 
 
